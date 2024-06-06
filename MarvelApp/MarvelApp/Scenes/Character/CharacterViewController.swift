@@ -18,13 +18,13 @@ final class CharacterViewController: UIViewController {
     
     // MARK:  Properties
     private var marvelResults : [Results] = []
-    
-    
+    private var isGridView : Bool = false
+
     //MARK: Dependencies
     private var interactor: (CharacterDataStore & CharacterBusinessLogic)
     private let router: CharacterRouting
     
-
+    
     // MARK: - İnitialization
     
     init(interactor: CharacterDataStore & CharacterBusinessLogic, router: CharacterRouting) {
@@ -53,7 +53,14 @@ final class CharacterViewController: UIViewController {
     }()
     
     
-
+    private lazy var collectionView: UICollectionView = {
+        var layout = UICollectionViewFlowLayout()
+        layout.scrollDirection = .vertical
+        let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        cv.showsVerticalScrollIndicator = false
+        return cv
+    }()
+    
     
     
     // MARK: - LifeCycle
@@ -64,7 +71,7 @@ final class CharacterViewController: UIViewController {
     }
     
     
-
+    
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Bellek uyarısı alındığında yapılacak işlemler
@@ -75,13 +82,15 @@ final class CharacterViewController: UIViewController {
             self.view = nil
         }
     }
-
+    
     
     // MARK: - Setup
     private func setup(){
         // Subview
         view.backgroundColor = .systemBackground
         view.addSubview(tableView)
+        view.addSubview(collectionView)
+        
         
         
         // Tableview Configure
@@ -97,6 +106,25 @@ final class CharacterViewController: UIViewController {
         searchController.searchResultsUpdater = self  // arama sonuçlarını güncellemek için delege belirttik. UISearchResultsUpdating Protokolü engtegre edeceğim
         
         
+        // CollectionView Configure
+        collectionView.delegate = self
+        collectionView.dataSource = self
+        collectionView.register(SearchResultCollectionCell.self, forCellWithReuseIdentifier: SearchResultCollectionCell.reuseID)
+        
+        
+        
+        
+        // ToggleView
+        navigationItem.rightBarButtonItem = UIBarButtonItem(
+            image: UIImage(systemName: "list.bullet.below.rectangle"),
+            style: .plain,
+            target: self,
+            action: #selector(toggleView)
+        )
+        
+        collectionView.isHidden = true
+
+        
         
     }
     
@@ -107,6 +135,29 @@ final class CharacterViewController: UIViewController {
             make.leading.equalTo(view.snp.leadingMargin)
             make.trailing.equalTo(view.snp.trailingMargin)
             make.bottom.equalTo(view.snp.bottomMargin)
+        }
+        
+        
+        collectionView.snp.makeConstraints { make in
+            make.top.equalTo(view.snp.topMargin)
+            make.leading.equalTo(view.snp.leadingMargin)
+            make.trailing.equalTo(view.snp.trailingMargin)
+            make.bottom.equalTo(view.snp.bottomMargin)
+        }
+    }
+    
+    // MARK: - Actions
+    
+    @objc fileprivate func toggleView(){
+        isGridView.toggle()
+        if isGridView {
+            tableView.isHidden = true
+            collectionView.isHidden = false
+            navigationItem.rightBarButtonItem?.image = UIImage(systemName: "list.bullet.below.rectangle")
+        } else {
+            tableView.isHidden = false
+            collectionView.isHidden = true
+            navigationItem.rightBarButtonItem?.image = UIImage(systemName: "square.grid.2x2")
         }
     }
 }
@@ -119,6 +170,7 @@ extension CharacterViewController: CharacterDisplayLogic {
             guard let self = self else { return }
             self.marvelResults = viewModel.characterList
             tableView.reloadData()
+            collectionView.reloadData()
         }
     }
 }
@@ -160,16 +212,49 @@ extension CharacterViewController: UITableViewDelegate, UITableViewDataSource {
 
 
 
+// MARK: - UICollectionViewDelegate & UICollectionViewDataSource
+extension CharacterViewController: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        return marvelResults.count
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: SearchResultCollectionCell.reuseID, for: indexPath) as? SearchResultCollectionCell else {
+            return UICollectionViewCell()
+        }
+        let model = marvelResults[indexPath.item]
+        cell.configure(with: model)
+        return cell
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        return .init(width: 160, height: 180)
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        collectionView.deselectItem(at: indexPath, animated: true)
+        
+        // Aktarılacak veriyi dolduralım
+        interactor.selectedCharecter = marvelResults[indexPath.item]
+        
+        // Geçiş
+        router.routeDetail()
+    }
+}
+
+
+
+
 // MARK: - UISearchResultsUpdating Protocol
 
 extension CharacterViewController: UISearchResultsUpdating, UISearchBarDelegate {
-
+    
     func updateSearchResults(for searchController: UISearchController) {
         guard let searchText = searchController.searchBar.text?.trimmingCharacters(in: .whitespaces), !searchText.isEmpty else { return }
         
         if let vc = searchController.searchResultsController as? SearchResultController {
             vc.updateSearchText(searchText)
         }
-       
+        
     }
 }

@@ -103,7 +103,6 @@ private extension SearchResultCollectionCell {
             make.leading.equalTo(contentView.snp.leadingMargin)
             make.trailing.equalTo(contentView.snp.trailingMargin)
             make.height.equalTo(150)
-            make.width.equalTo(150)
             
         }
         
