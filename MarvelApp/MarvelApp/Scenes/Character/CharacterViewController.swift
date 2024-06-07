@@ -188,7 +188,6 @@ extension CharacterViewController: CharacterDisplayLogic {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
             self.marvelResults = viewModel.characterList
-            self.sortChanged(self.segmentedControl)
             tableView.reloadData()
             collectionView.reloadData()
         }
