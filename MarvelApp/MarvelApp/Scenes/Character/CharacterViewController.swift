@@ -19,7 +19,7 @@ final class CharacterViewController: UIViewController {
     // MARK:  Properties
     private var marvelResults : [Results] = []
     private var isGridView : Bool = false
-
+    
     //MARK: Dependencies
     private var interactor: (CharacterDataStore & CharacterBusinessLogic)
     private let router: CharacterRouting
@@ -59,6 +59,12 @@ final class CharacterViewController: UIViewController {
         let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
         cv.showsVerticalScrollIndicator = false
         return cv
+    }()
+    
+    private lazy var segmentedControl: UISegmentedControl = {
+        let sc = UISegmentedControl(items: ["ASC", "DESC"])
+        sc.addTarget(self, action: #selector(sortChanged(_:)), for: .valueChanged)
+        return sc
     }()
     
     
@@ -123,7 +129,10 @@ final class CharacterViewController: UIViewController {
         )
         
         collectionView.isHidden = true
-
+        
+        // Segmented Control
+        navigationItem.titleView = segmentedControl
+        segmentedControl.selectedSegmentIndex = 0 
         
         
     }
@@ -160,6 +169,16 @@ final class CharacterViewController: UIViewController {
             navigationItem.rightBarButtonItem?.image = UIImage(systemName: "square.grid.2x2")
         }
     }
+    
+    @objc fileprivate func sortChanged(_ sender: UISegmentedControl) {
+        if sender.selectedSegmentIndex == 0 {
+            marvelResults.sort { $0.name! < $1.name! }
+        } else {
+            marvelResults.sort { $0.name! > $1.name! }
+        }
+        tableView.reloadData()
+        collectionView.reloadData()
+    }
 }
 
 
@@ -169,6 +188,7 @@ extension CharacterViewController: CharacterDisplayLogic {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
             self.marvelResults = viewModel.characterList
+            self.sortChanged(self.segmentedControl)
             tableView.reloadData()
             collectionView.reloadData()
         }
