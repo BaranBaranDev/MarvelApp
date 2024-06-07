@@ -171,10 +171,10 @@ final class CharacterViewController: UIViewController {
     }
     
     @objc fileprivate func sortChanged(_ sender: UISegmentedControl) {
-        if sender.selectedSegmentIndex == 0 {
-            marvelResults.sort { $0.name! < $1.name! }
-        } else {
-            marvelResults.sort { $0.name! > $1.name! }
+        if sender.selectedSegmentIndex == 0 { //asc
+            marvelResults.sort { $0.name! < $1.name! } // A-Z
+        } else { //desc
+            marvelResults.sort { $0.name! > $1.name! } // Z-A
         }
         tableView.reloadData()
         collectionView.reloadData()
