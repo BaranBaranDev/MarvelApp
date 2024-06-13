@@ -202,11 +202,19 @@ extension CharacterViewController: CharacterDisplayLogic {
     func display(viewModel: CharacterModels.fetchCharacter.Viewmodel) {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
+            
             if self.isLoadingMoreData {
                 self.marvelResults.append(contentsOf: viewModel.characterList) // Yeni verileri mevcut listenin sonuna ekler
                 self.isLoadingMoreData = false // Daha fazla veri yükleme işlemi tamamlandı
             } else {
                 self.marvelResults = viewModel.characterList // Yeni verilerle listeyi tamamen günceller
+            }
+            
+            // segmentedControl
+            if segmentedControl.selectedSegmentIndex == 0 { //asc
+                marvelResults.sort { $0.name! < $1.name! } // A-Z
+            } else { //desc
+                marvelResults.sort { $0.name! > $1.name! } // Z-A
             }
             self.tableView.reloadData() // Tabloyu yeniden yükle
             self.collectionView.reloadData() // Koleksiyonu yeniden yükle
