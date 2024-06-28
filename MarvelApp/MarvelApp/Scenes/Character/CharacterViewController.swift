@@ -181,13 +181,14 @@ final class CharacterViewController: UIViewController {
     
     @objc fileprivate func sortChanged(_ sender: UISegmentedControl) {
         if sender.selectedSegmentIndex == 0 { //asc
-            marvelResults.sort { $0.name! < $1.name! } // A-Z
+            marvelResults.sort { ($0.name ?? "") < ($1.name ?? "") } // A-Z
         } else { //desc
-            marvelResults.sort { $0.name! > $1.name! } // Z-A
+            marvelResults.sort { ($0.name ?? "") > ($1.name ?? "") } // Z-A
         }
         tableView.reloadData()
         collectionView.reloadData()
     }
+
     
     
     @objc fileprivate func refreshData() {
@@ -211,10 +212,10 @@ extension CharacterViewController: CharacterDisplayLogic {
             }
             
             // segmentedControl
-            if segmentedControl.selectedSegmentIndex == 0 { //asc
-                marvelResults.sort { $0.name! < $1.name! } // A-Z
+            if self.segmentedControl.selectedSegmentIndex == 0 { //asc
+                self.marvelResults.sort { ($0.name ?? "") < ($1.name ?? "") } // A-Z
             } else { //desc
-                marvelResults.sort { $0.name! > $1.name! } // Z-A
+                self.marvelResults.sort { ($0.name ?? "") > ($1.name ?? "") } // Z-A
             }
             self.tableView.reloadData() // Tabloyu yeniden yükle
             self.collectionView.reloadData() // Koleksiyonu yeniden yükle
